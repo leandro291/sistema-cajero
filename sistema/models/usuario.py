@@ -9,6 +9,7 @@ class Usuario:
         self.dni = dni
         self.cuentas: Dict[str, Cuenta] = {}
         self.estado: bool = True
+        self.dinero_inicial: float = 0.0
 
     def _cambiar_estado(self) -> None:
         
@@ -27,6 +28,7 @@ class Usuario:
 class UsuarioSchema(BaseModel):
     nombre: str = Field(min_length=1, max_length=60)
     dni: str = Field(min_length=8)
+    dinero_inicial: float = Field(default=0.0, ge=0.0)
 
     @field_validator('nombre')
     @classmethod
@@ -56,11 +58,12 @@ class UsuarioSchema(BaseModel):
 def main():
 
     try:
-        validador_usuario = UsuarioSchema(nombre="Leandro", dni="60746986")
+        validador_usuario = UsuarioSchema(nombre="Leandro", dni="60746986", dinero_inicial=1000.0)
         usuario1 = Usuario(nombre=validador_usuario.nombre, dni=validador_usuario.dni)
 
         print(usuario1.nombre)
         print(usuario1.dni)
+        print(usuario1.dinero_inicial)
 
     except ValidationError as e:
         print(f"Error: {e}")
