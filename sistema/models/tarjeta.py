@@ -1,12 +1,14 @@
 from utils import limpiar_strings
 from random import random, randint
 from pydantic import BaseModel, field_validator, Field
+from bcrypt import gensalt, hashpw, checkpw
 
 class Tarjeta:
+
     def __init__(self, pin: str):
         self.estado = True
         self.numero_tarjeta = self.generar_tarjeta()
-        self.pin = pin
+        self.pin = self._hash_pin(pin=pin)
         self.intentos = 0
 
     def _cambiar_estado(self) -> None:
@@ -16,6 +18,14 @@ class Tarjeta:
 
         if not self.estado:
             raise ValueError("La cuenta se encuentra inactiva")
+        
+    def _hash_pin(self, pin: str) -> str:
+
+        bytes_pin =  pin.encode('utf-8')
+        salt = gensalt()
+        hashed_pin = hashpw(password=bytes_pin, salt=salt)
+
+        return hashed_pin.decode('utf-8')
 
     def generar_tarjeta(self) -> str:
 
@@ -38,21 +48,30 @@ class Tarjeta:
         
         return prefijo + str(digito_control)
 
-    def validar_pin(self, pin: str) -> bool:
+    def validar_pin(self, pin_ingresado: str) -> bool:
 
         self._validar_estado()
 
         if self.intentos >= 3:
             self.estado = False
             return False
+        
+        pin_ingresado_bytes = pin_ingresado.encode('utf-8')
+        hash_guardado = self.pin.encode('utf-8')
             
-        if self.pin == pin:
+        if checkpw(password=pin_ingresado_bytes, hashed_password=hash_guardado):
             self.intentos = 0 
             return True
         else:
             self.intentos += 1  
-            return False        
+            return False
 
+    def __str__(self):
+        return str({
+            "numero_tarjeta" : self.numero_tarjeta,
+            "pin" : self.pin,
+            "estado" : "Activo" if self.estado else "Inactivo"
+        })
 
 class TarjetaSchema(BaseModel):
 
