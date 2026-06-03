@@ -1,15 +1,15 @@
 from typing import Dict
-from cuenta import Cuenta
-from utils.utils import limpiar_strings
+from .cuenta import Cuenta
+from utils import limpiar_strings
 from pydantic import BaseModel, Field, field_validator, ValidationError
 
 class Usuario:
-    def __init__(self, nombre: str, dni: str):
+    def __init__(self, nombre: str, dni: str, dinero_incial: float):
         self.nombre = nombre
         self.dni = dni
+        self.dinero_inicial = dinero_incial
         self.cuentas: Dict[str, Cuenta] = {}
         self.estado: bool = True
-        self.dinero_inicial: float = 0.0
 
     def _cambiar_estado(self) -> None:
         
@@ -25,6 +25,17 @@ class Usuario:
         self._validar_estado()
         self.cuentas[cuenta.numero_cuenta] = cuenta
 
+    def __str__(self):
+        return str({
+            "nombre" : self.nombre,
+            "dni" : self.dni,
+            "dinero_incial" : self.dinero_inicial,
+            "estado" : "Activo" if self.estado else "Inactivo",
+            "cuentas" : self.cuentas
+        })
+
+
+
 class UsuarioSchema(BaseModel):
     nombre: str = Field(min_length=1, max_length=60)
     dni: str = Field(min_length=8)
@@ -36,7 +47,7 @@ class UsuarioSchema(BaseModel):
 
         valor_limpio = limpiar_strings(valor)
 
-        if not valor_limpio.isalpha():
+        if not valor_limpio.replace(" ", "").isalpha():
             raise ValueError("El nombre solo debe ser alfabetico")
         
         return valor_limpio
@@ -54,21 +65,3 @@ class UsuarioSchema(BaseModel):
             raise ValueError("El DNI debe contar con 8 caracteres")
         
         return valor_limpio
-
-def main():
-
-    try:
-        validador_usuario = UsuarioSchema(nombre="Leandro", dni="60746986", dinero_inicial=1000.0)
-        usuario1 = Usuario(nombre=validador_usuario.nombre, dni=validador_usuario.dni)
-
-        print(usuario1.nombre)
-        print(usuario1.dni)
-        print(usuario1.dinero_inicial)
-
-    except ValidationError as e:
-        print(f"Error: {e}")
-
-    pass
-
-if __name__ == "__main__":
-    main()

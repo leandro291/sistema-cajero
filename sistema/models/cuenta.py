@@ -33,6 +33,14 @@ class Cuenta:
 
         self.saldo -= monto
 
+    def __str__(self):
+        return str({
+            "numero_cuenta": self.numero_cuenta,
+            "tipo": self.tipo_cuenta,
+            "saldo": self.saldo,
+            "estado" : "Activo" if self.estado else "Inactivo",
+        })
+
 class CuentaSchema(BaseModel):
     
     numero_cuenta: str
