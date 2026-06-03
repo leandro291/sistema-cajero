@@ -9,34 +9,47 @@ class Usuario:
         self.dni = dni
         self.dinero_inicial = dinero_incial
         self.cuentas: Dict[str, Cuenta] = {}
-        self.estado: bool = True
 
-    def _cambiar_estado(self) -> None:
-        
-        self.estado = not self.estado
+    def _validar_dinero(self, monto: float):
 
-    def _validar_estado(self) -> None:
-        
-        if not self.estado:
-            raise ValueError("El usuario se encuentra inactivo")
+        if not isinstance(monto, (int, float)):
+            raise TypeError("El monto debe ser un valor numerico")
 
-    def crear_cuenta(self, cuenta: Cuenta) -> None:
+        if monto <= 0:
+            raise ValueError("El monto debe ser mayor a 0")
+
+    def crear_cuenta(self, cuenta: "Cuenta") -> None:
+
+        if not isinstance(cuenta, Cuenta):
+            raise ValueError("Debe agregar una cuenta existente")
         
-        self._validar_estado()
         self.cuentas[cuenta.numero_cuenta] = cuenta
+
+    def retirar(self, cuenta: "Cuenta", monto: float):
+
+        self._validar_dinero(monto)
+        self.dinero_inicial += monto
+        cuenta.debitar(monto)
+
+    def depositar(self, cuenta: "Cuenta", monto: float):
+        
+        self._validar_dinero(monto)
+        
+        if monto > self.dinero_inicial:
+            raise ValueError("Fondos insuficientes para realizar la operacion")
+
+        self.dinero_inicial -= monto
+        cuenta.acreditar(monto)
 
     def __str__(self):
         return str({
             "nombre" : self.nombre,
             "dni" : self.dni,
             "dinero_incial" : self.dinero_inicial,
-            "estado" : "Activo" if self.estado else "Inactivo",
             "cuentas" : self.cuentas
         })
-
-
-
 class UsuarioSchema(BaseModel):
+    
     nombre: str = Field(min_length=1, max_length=60)
     dni: str = Field(min_length=8)
     dinero_inicial: float = Field(default=0.0, ge=0.0)
