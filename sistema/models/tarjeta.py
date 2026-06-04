@@ -7,7 +7,7 @@ class Tarjeta:
 
     def __init__(self, pin: str):
         self.estado = True
-        self.numero_tarjeta = self.generar_tarjeta()
+        self.numero_tarjeta = self._generar_tarjeta()
         self.pin = self._hash_pin(pin=pin)
         self.intentos = 0
 
@@ -27,7 +27,7 @@ class Tarjeta:
 
         return hashed_pin.decode('utf-8')
 
-    def generar_tarjeta(self) -> str:
+    def _generar_tarjeta(self) -> str:
 
         self._validar_estado()
 
@@ -49,22 +49,24 @@ class Tarjeta:
         return prefijo + str(digito_control)
 
     def validar_pin(self, pin_ingresado: str) -> bool:
-
         self._validar_estado()
 
         if self.intentos >= 3:
             self.estado = False
-            return False
-        
+            raise ValueError("La tarjeta está bloqueada")
+            
         pin_ingresado_bytes = pin_ingresado.encode('utf-8')
         hash_guardado = self.pin.encode('utf-8')
             
         if checkpw(password=pin_ingresado_bytes, hashed_password=hash_guardado):
-            self.intentos = 0 
+            self.intentos = 0
             return True
         else:
-            self.intentos += 1  
-            return False
+            self.intentos += 1 
+            if self.intentos >= 3:
+                self.estado = False
+                raise ValueError("PIN incorrecto. Su tarjeta ha sido bloqueada")
+            return False 
 
     def __str__(self):
         return str({
