@@ -1,4 +1,4 @@
-from models import Usuario, UsuarioSchema, Cuenta, CuentaSchema, Tarjeta, TarjetaSchema
+from models import Usuario, UsuarioSchema, Cuenta, CuentaSchema, Tarjeta, TarjetaSchema, Cajero, CajeroSchema
 from pydantic import ValidationError
 
 diccionario_usuario = {}
@@ -100,7 +100,6 @@ def crear_tarjeta() -> bool:
     print("La tarjeta se creado correctamente")
     return True 
 
-
 def verificador_flujos() -> None:
     if not ver_usuarios():
         return False
@@ -135,16 +134,34 @@ def verificador_flujos() -> None:
     
     return True
 
-
-
-#probare la clase tarjeta aparte nomas
-
+#Probando las clases aparte
 def probar():
     try:
-        validador_tarjeta = TarjetaSchema(pin="123456")
-        tarjeta = Tarjeta(pin=validador_tarjeta.pin)
+        
+        user = Usuario("Leandro", "12345678", 1500.00)
+        cuenta = Cuenta("VISA-1982", "ahorro")
+        tarjeta = Tarjeta("123456")
+        cajero = Cajero(5000.00)
 
-        print(tarjeta.numero_tarjeta)
+        user.crear_cuenta(cuenta)
+        cuenta.agregar_tarjeta(tarjeta)
+
+        print(user)
+        print(cuenta)
+
+        user.depositar(cuenta, 200.0)
+
+        print(user)
+        print(cuenta)
+
+        while True:
+
+            cajero.retirar_dinero(cuenta, tarjeta, "123456", 100.00)
+            break
+
+        print(cuenta)
+        print(cajero)
+
 
 
     except ValidationError as e:
@@ -182,5 +199,5 @@ def main():
         print(f"Error: {e}")
 
 if __name__ == "__main__":
-    main()
-    #
+    #main()
+    probar()
