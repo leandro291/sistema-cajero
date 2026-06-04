@@ -1,4 +1,5 @@
 from models import Usuario, UsuarioSchema, Cuenta, CuentaSchema, Tarjeta, TarjetaSchema, Cajero, CajeroSchema
+from services import SistemaCajero
 from pydantic import ValidationError
 
 diccionario_usuario = {}
@@ -11,7 +12,7 @@ def crear_usuario() -> None:
     dinero_inicial = float(input("Ingrese con cuanto dinero se registrará: "))
 
     validador_usuario = UsuarioSchema(nombre=nombre, dni=dni, dinero_inicial=dinero_inicial)
-    usuario = Usuario(nombre=validador_usuario.nombre, dni=validador_usuario.dni, dinero_incial=validador_usuario.dinero_inicial)
+    usuario = Usuario(nombre=validador_usuario.nombre, dni=validador_usuario.dni, dinero_inicial=validador_usuario.dinero_inicial)
 
     diccionario_usuario[usuario.dni] = usuario
 
@@ -95,7 +96,7 @@ def crear_tarjeta() -> bool:
     validacion_tarjeta = TarjetaSchema(pin="123456")
     tarjeta = Tarjeta(pin=validacion_tarjeta)
 
-    cuentra_encontrada.agregar_tarjeta(tarjeta)
+    cuentra_encontrada.vincular_tarjeta(tarjeta)
 
     print("La tarjeta se creado correctamente")
     return True 
@@ -144,7 +145,7 @@ def probar():
         cajero = Cajero(5000.00)
 
         user.crear_cuenta(cuenta)
-        cuenta.agregar_tarjeta(tarjeta)
+        cuenta.vincular_tarjeta(tarjeta)
 
         print(user)
         print(cuenta)
@@ -198,6 +199,18 @@ def main():
     except ValueError as e:
         print(f"Error: {e}")
 
+def probar2():
+    try:
+
+        sistema = SistemaCajero()
+        sistema.crear_usuario()
+        sistema.crear_y_vincular_cuenta()
+        print(sistema.usuarios)
+        print(sistema.cuentas)
+
+    except Exception as e:
+        print(f"Error: {e}")
+
 if __name__ == "__main__":
     #main()
-    probar()
+    probar2()
