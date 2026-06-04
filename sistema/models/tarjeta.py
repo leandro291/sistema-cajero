@@ -1,36 +1,31 @@
 from utils import limpiar_strings
-from random import random, randint
+from random import randint
 from pydantic import BaseModel, field_validator, Field
 from bcrypt import gensalt, hashpw, checkpw
 
 class Tarjeta:
 
-    def __init__(self, pin: str):
+    def __init__(self, pin: str, numero_cuenta: str):
         self.estado = True
-        self.numero_tarjeta = self._generar_tarjeta()
+        self.intentos: int = 0
+        self.numero_cuenta = numero_cuenta
+        self.numero_tarjeta: str = self._generar_tarjeta()
         self.pin = self._hash_pin(pin=pin)
-        self.intentos = 0
 
     def _cambiar_estado(self) -> None:
         self.estado = not self.estado
     
     def _validar_estado(self) -> None:
-
         if not self.estado:
-            raise ValueError("La cuenta se encuentra inactiva")
+            raise ValueError("La tarjeta se encuentra bloqueada o inactiva")
         
     def _hash_pin(self, pin: str) -> str:
-
         bytes_pin =  pin.encode('utf-8')
         salt = gensalt()
         hashed_pin = hashpw(password=bytes_pin, salt=salt)
-
         return hashed_pin.decode('utf-8')
 
     def _generar_tarjeta(self) -> str:
-
-        self._validar_estado()
-
         prefijo = "4" + "".join(str(randint(0, 9)) for _ in range(14))
             
         suma = 0
@@ -48,12 +43,9 @@ class Tarjeta:
         
         return prefijo + str(digito_control)
 
+
     def validar_pin(self, pin_ingresado: str) -> bool:
         self._validar_estado()
-
-        if self.intentos >= 3:
-            self.estado = False
-            raise ValueError("La tarjeta está bloqueada")
             
         pin_ingresado_bytes = pin_ingresado.encode('utf-8')
         hash_guardado = self.pin.encode('utf-8')
@@ -61,12 +53,13 @@ class Tarjeta:
         if checkpw(password=pin_ingresado_bytes, hashed_password=hash_guardado):
             self.intentos = 0
             return True
-        else:
-            self.intentos += 1 
-            if self.intentos >= 3:
-                self.estado = False
-                raise ValueError("PIN incorrecto. Su tarjeta ha sido bloqueada")
-            return False 
+
+        self.intentos += 1
+        if self.intentos >= 3:
+            self.estado = False
+            raise ValueError("PIN incorrecto. Su tarjeta ha sido bloqueada por seguridad.")
+        
+        return False
 
     def __str__(self):
         return str({
@@ -77,7 +70,8 @@ class Tarjeta:
 
 class TarjetaSchema(BaseModel):
 
-    pin: str 
+    pin: str
+    numero_cuenta: str 
 
     @field_validator('pin')
     @classmethod
