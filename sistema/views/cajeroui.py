@@ -1,0 +1,144 @@
+from services import SistemaCajero
+from pydantic import ValidationError
+
+class CajeroUI:
+    def __init__(self):
+        self.sistema_cajero = SistemaCajero() 
+    
+    def iniciar(self) -> None:
+        while True:
+            try:
+                print("========================================")
+                print("SISTEMA BANCARIO Y CAJERO ATM")
+                print("========================================")
+                print("[1]. Administrar")
+                print("[2]. Usar Cajero")
+                print("[3]. Salir")
+
+                opc = input("Ingrese una opcion: ").strip()
+
+                match(opc):
+                    case "1":
+                        self.menu_administrador()
+
+                    case "2":
+                        pass
+
+                    case "3":
+                        print(f"Saliendo del sistema....")
+                        break
+                    case _:
+                        print(f"Opcion invalida. Vuelva a seleccionar una opcion")
+                        continue
+
+            except KeyboardInterrupt as e:
+                print(f"Ha ocurrido un error de teclado: {e}")
+            except Exception as e:
+                print(f"Ha ocurrio un error inesperado {e}")
+    
+    def menu_administrador(self) -> None:
+        while True:
+            try:
+                print("--- ADMINISTRACION BANCARIA ---")
+                print("[1]. Registrar nuevo cliente")
+                print("[2]. Aperturar cuenta bancaria")
+                print("[3]. Emitir tarjeta de débito")
+                print("[4]. Depositar efectivo a cuenta") 
+                print("[5]. Regresar al menu principal")
+
+                opc = input("Ingrese una opcion: ").strip()
+
+                match(opc):
+                    case "1":
+                        print("\n--- REGISTRO DE USUARIOS ---")
+                        try: 
+                            nombre = input("Ingrese su nombre: ").strip().title()
+                            dni = input("Ingrese su DNI: ").strip()
+                            saldo = float(input("Ingrese dinero incial: S/. "))
+
+                            dni_registrado = self.sistema_cajero.crear_usuario(nombre, dni, saldo)
+
+                            print(f"Usuario con DNI {dni_registrado} ha sido registrado con exito en el Sistema")
+
+                        except ValidationError as e:
+                            print("Ha ocurrido un error en los datos ingresados:")
+                            for error in e.errors():
+                                print(f" - {error['msg']}")
+                        except ValueError as e:
+                            print(f"Ha ocurrido un error en la logica: {e}")
+
+                    case "2":
+                        print(f"\n------ VINCULACION DE CUENTAS ------ ")
+                        try:
+                            self.sistema_cajero._listar_usuarios()
+                            dni_usuario = input("Ingrese DNI del usuario al que desea vincular: ").strip()
+
+                            print(f"\n------ CREACION DE CUENTA ------ ")
+                            tipo_cuenta = input("Ingrese el tipo de cuenta que desea: ").strip()
+
+                            cuenta_registrada = self.sistema_cajero.crear_y_vincular_cuenta(dni_usuario, tipo_cuenta)
+
+                            print(f"La cuenta {cuenta_registrada} ha sido vinculada con exito")
+
+                        except ValidationError as e:
+                            print("Ha ocurrido un error en los datos ingresados:")
+                            for error in e.errors():
+                                print(f" - {error['msg']}")
+                        except ValueError as e:
+                            print(f"Ha ocurrido un error en la logica: {e}")
+
+                    case "3":
+                        print(f"\n------  VINCULACION DE TARJETAS ------ ")
+
+                        try:
+                            self.sistema_cajero._listar_usuarios()
+                            dni_usuario = input("Ingrese DNI del usuario al que desea vincular: ").strip()
+                            self.sistema_cajero._listar_cuentas_por_usuario(dni_usuario)
+                            numero_cuenta = input("Ingrese el Numero de Cuenta de la Cuenta a la que desea vincular: ").strip()
+
+                            print(f"\n------  CREACION DE TARJETA ------ ")
+                            pin = input("Ingrese el PIN para su nueva tarjeta: ").strip()
+
+                            tarjeta_creada = self.sistema_cajero.crear_y_vincular_tarjeta(dni_usuario, numero_cuenta, pin)
+
+                            print(f"La tarjeta {tarjeta_creada} ha sido vinculada exitosamente a la cuenta ")
+
+                        except ValidationError as e:
+                            print("Ha ocurrido un error en los datos ingresados:")
+                            for error in e.errors():
+                                print(f" - {error['msg']}")
+                        except ValueError as e:
+                            print(f"Ha ocurrido un error en la logica: {e}")
+
+                    case "4":
+                        try:
+                            print(f"------  DEPOSITAR FONDO A CUENTA ------ ")
+                            self.sistema_cajero._listar_usuarios()
+                            dni_usuario = input("Ingrese DNI del usuario: ").strip()
+                            self.sistema_cajero._listar_cuentas_por_usuario(dni_usuario)
+                            numero_cuenta = input("Ingrese el numero de cuenta: ").strip()
+                            monto = float(input("Ingres el monto a depositar: "))
+
+                            nuevo_efectivo, nuevo_saldo = self.sistema_cajero.depositar_fondos_cuenta(dni_usuario, numero_cuenta, monto)
+
+                            print(" ransacción realizada exitosamente.")
+                            print(f"Nuevo efectivo del usuario: S/. {nuevo_efectivo}")
+                            print(f"Nuevo saldo en la cuenta bancaria: S/. {nuevo_saldo}")
+
+                        except ValidationError as e:
+                            print("Ha ocurrido un error en los datos ingresados:")
+                            for error in e.errors():
+                                print(f" - {error['msg']}")
+                        except ValueError as e:
+                            print(f"Ha ocurrido un error en la logica: {e}")
+
+                    case "5":
+                        print(f"Regresando al menu principal...")
+                        break
+
+                    case _:
+                        print(f"Opcion invalida. Vuelva a seleccionar una opcion")
+                        continue
+
+            except Exception as e:
+                print(f"Ha ocurrido un error: {e}")
