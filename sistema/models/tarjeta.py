@@ -46,20 +46,19 @@ class Tarjeta:
 
     def validar_pin(self, pin_ingresado: str) -> bool:
         self._validar_estado()
-            
+
         pin_ingresado_bytes = pin_ingresado.encode('utf-8')
         hash_guardado = self.pin.encode('utf-8')
             
         if checkpw(password=pin_ingresado_bytes, hashed_password=hash_guardado):
             self.intentos = 0
             return True
+        else:
+            self.intentos += 1
 
-        self.intentos += 1
         if self.intentos >= 3:
-            self.estado = False
-            raise ValueError("PIN incorrecto. Su tarjeta ha sido bloqueada por seguridad.")
-        
-        return False
+            self.estado = False  
+            raise ValueError("Supero los 3 intentos maximos. Se ha bloqueado su tarjeta")
 
     def __str__(self):
         return str({
