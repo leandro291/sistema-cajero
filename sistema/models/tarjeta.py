@@ -5,11 +5,11 @@ from bcrypt import gensalt, hashpw, checkpw
 
 class Tarjeta:
 
-    def __init__(self, pin: str, numero_cuenta: str):
+    def __init__(self, numero_tarjeta: str, pin: str, numero_cuenta: str, ):
+        self.numero_tarjeta = numero_tarjeta
         self.estado = True
         self.intentos: int = 0
         self.numero_cuenta = numero_cuenta
-        self.numero_tarjeta: str = self._generar_tarjeta()
         self.pin = self._hash_pin(pin=pin)
 
     def _cambiar_estado(self) -> None:
@@ -24,25 +24,6 @@ class Tarjeta:
         salt = gensalt()
         hashed_pin = hashpw(password=bytes_pin, salt=salt)
         return hashed_pin.decode('utf-8')
-
-    def _generar_tarjeta(self) -> str:
-        prefijo = "4" + "".join(str(randint(0, 9)) for _ in range(14))
-            
-        suma = 0
-        reverso = prefijo[::-1]
-        
-        for i, digito in enumerate(reverso):
-            n = int(digito)
-            if i % 2 == 0:
-                n *= 2
-                if n > 9:
-                    n -= 9
-            suma += n
-            
-        digito_control = (10 - (suma % 10)) % 10
-        
-        return prefijo + str(digito_control)
-
 
     def validar_pin(self, pin_ingresado: str) -> bool:
         self._validar_estado()
@@ -69,6 +50,7 @@ class Tarjeta:
 
 class TarjetaSchema(BaseModel):
 
+    numero_tarjeta: str
     pin: str
     numero_cuenta: str 
 
