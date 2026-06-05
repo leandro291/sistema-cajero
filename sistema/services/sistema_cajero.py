@@ -1,5 +1,4 @@
 from typing import Dict
-from utils import limpiar_strings
 from pydantic import ValidationError
 from models import Cuenta, CuentaSchema, Usuario, UsuarioSchema, Tarjeta, TarjetaSchema, Cajero, CajeroSchema
 
@@ -18,7 +17,6 @@ class SistemaCajero:
     
     def crear_usuario(self) -> None:
         try:
-
             print(f"\n------ REGISTRO DE USUARIOS ------ ")
             nombre = input("Ingrese su nombre: ").title()
             dni = input("Ingrese su DNI: ")
@@ -54,24 +52,23 @@ class SistemaCajero:
 
     def crear_y_vincular_cuenta(self) -> None:
         try:
-
             if len(self.usuarios) == 0:
-                raise ValueError(f"No existen cuentas registradas en el sistema")
+                raise ValueError(f"No existen usuarios registradas en el sistema")
             
             print(f"\n------ VINCULACION DE CUENTAS ------ ")
 
             self._lista_de_usuarios()
 
-            dni_usuario = limpiar_strings(input("Ingrese DNI del usuario: "))
+            dni_usuario = (input("Ingrese DNI del usuario: "))
             if dni_usuario not in self.usuarios:
                 raise ValueError("El DNI ingresado no se encuentra registrado")
             
             print(f"\n------ CREACION DE CUENTA ------ ")
-            numero_cuenta = limpiar_strings(input("Ingrese el numero de cuenta: "))
+            numero_cuenta = (input("Ingrese el numero de cuenta: "))
             if numero_cuenta in self.cuentas:
                 raise ValueError("La cuenta seleccionada ya se encuentra vinculada")
 
-            tipo_cuenta = limpiar_strings(input("Ingrese su tipo de cuenta: "))
+            tipo_cuenta = (input("Ingrese su tipo de cuenta: "))
 
             validacion_cuenta = CuentaSchema(
                 numero_cuenta=numero_cuenta,
@@ -101,23 +98,24 @@ class SistemaCajero:
 
     def crear_y_vincular_tarjeta(self) -> None:    
         try:
-
             if len(self.usuarios) == 0:
-                raise ValueError(f"No existen cuentas registradas en el sistema")
+                raise ValueError(f"No existen usuarios registradas en el sistema")
+            if len(self.cuentas) == 0:
+                raise ValueError("No existen cuentas bancarias registradas en el sistema para vincular una tarjeta.")
 
             print(f"\n------  VINCULACION DE TARJETAS ------ ")
             self._lista_de_usuarios()
 
             dni_usuario = input("Ingrese DNI del usuario al que desea vincular: ").strip()
-            if dni_usuario not in self.usuarios:
-                raise ValueError("El DNI ingresado no se encuentra registrado")
-            
             usuario: "Usuario" = self.usuarios.get(dni_usuario)
-            print("\n------  CUENTAS DISPONIBLES ------ ")
+
+            if not usuario:
+                raise ValueError("El DNI ingresado no se encuentra registrado.")
 
             if len(usuario.cuentas) == 0:
                 raise ValueError(f"{usuario.nombre} no tiene cuentas registradas")
-
+            
+            print(f"\n------  CUENTAS DISPONIBLES DE {usuario.nombre.upper()} ------ ")
             for cuenta in usuario.cuentas:
                 print(f"- {cuenta}")
 
@@ -127,7 +125,7 @@ class SistemaCajero:
             
             print(f"\n------  CREACION DE TARJETA ------ ")
 
-            pin = input("Ingrese el PIN para su tarjeta: ").strip()
+            pin = input("Ingrese el PIN para su nueva tarjeta: ").strip()
             
             validacion_tarjeta = TarjetaSchema(
                 pin=pin,
@@ -153,117 +151,95 @@ class SistemaCajero:
         except Exception as e:
             print(f"Error inesperado: {e}")
 
-
-
-
     def depositar_fondos_cuenta(self) -> None:
-        print(f"------  DEPOSITAR FONDO A CUENTA ------ ")
-        self._lista_de_usuarios()
-
-        dni_usuario = input("Ingrese DNI del usuario: ").strip()
-        usuario: "Usuario" = self.usuarios.get(dni_usuario)
-
-        if not usuario:
-            raise ValueError("Usuario no encontrado en el sistema")
-
-        print("------  CUENTAS DISPONIBLES ------ ")
-        for cuenta in usuario.cuentas:
-            print(f"- {cuenta}")
-
-        numero_cuenta = input("Ingrese el numero de cuenta: ").strip()        
-        cuenta: "Cuenta" = self.cuentas.get(numero_cuenta)
-
-        if not cuenta:
-            raise ValueError("Cuenta no encontrada en el Usuario asignado")
-        
-        if cuenta.dni_usuario != usuario.dni:
-            raise ValueError("Esta cuenta no le pertenece a este usuario")
-
-        print(f"{usuario.nombre} tiene un saldo disponible de S/. {usuario.saldo}")
-
         try:
-            monto = float(input("Ingrese el monto que desea mover: "))
+
+            print(f"------  DEPOSITAR FONDO A CUENTA ------ ")
+            self._lista_de_usuarios()
+
+            dni_usuario = input("Ingrese DNI del usuario: ").strip()
+            usuario: "Usuario" = self.usuarios.get(dni_usuario)
+
+            if not usuario:
+                raise ValueError("Usuario no encontrado en el sistema")
+
+            print("------  CUENTAS DISPONIBLES ------ ")
+            for cuenta in usuario.cuentas:
+                print(f"- {cuenta}")
+
+            numero_cuenta = input("Ingrese el numero de cuenta: ").strip()        
+            cuenta: "Cuenta" = self.cuentas.get(numero_cuenta)
+
+            if not cuenta:
+                raise ValueError("Cuenta no encontrada en el Usuario asignado")
+            
+            if cuenta.dni_usuario != usuario.dni:
+                raise ValueError("Esta cuenta no le pertenece a este usuario")
+
+            print(f"{usuario.nombre} tiene un saldo disponible de S/. {usuario.saldo}")
+
+            monto = float(input("Ingrese el monto que desea mover: S/. "))
             usuario.restar_dinero(monto)
             cuenta.acreditar(monto)
 
             print(f"Transaccion realizada exitosamente: ")
             print(f"Nuevo saldo del Usuario: {usuario.nombre} -> S/. {usuario.saldo} ")
             print(f"Nuevo saldo en la Cuenta: {cuenta.numero_cuenta} -> S/. {cuenta.saldo} ")
+        except ValidationError as e:
+            print("\nError en los datos ingresados:")
+            for error in e.errors():
+                print(f" - {error['msg']}")
         except ValueError as e:
             print(f"Error: {e}")
-
-    def retirar_fondos_cuenta(self) -> None:
-        print(f"------  RETIRAR FONDO A CUENTA ------ ")
-        self._lista_de_usuarios()
-
-        dni_usuario = input("Ingrese DNI del usuario: ").strip()
-        usuario: "Usuario" = self.usuarios.get(dni_usuario)
-
-        if not usuario:
-            raise ValueError("Usuario no encontrado en el sistema")
-
-        print("------  CUENTAS DISPONIBLES ------ ")
-        for cuenta in usuario.cuentas:
-            print(f"- {cuenta}")
-
-        numero_cuenta = input("Ingrese el numero de cuenta: ").strip()        
-        cuenta: "Cuenta" = self.cuentas.get(numero_cuenta)
-
-        if not cuenta:
-            raise ValueError("Cuenta no encontrada en el Usuario asignado")
-        
-        if cuenta.dni_usuario != usuario.dni:
-            raise ValueError("Esta cuenta no le pertenece a este usuario")
-
-        print(f"{usuario.nombre} tiene un saldo disponible de S/. {usuario.saldo}")
-
-        try:
-            monto = float(input("Ingrese el monto que desea mover: "))
-            usuario.sumar_dinero(monto)
-            cuenta.debitar(monto)
-
-            print(f"Transaccion realizada exitosamente: ")
-            print(f"Nuevo saldo del Usuario: {usuario.nombre} -> S/. {usuario.saldo} ")
-            print(f"Nuevo saldo en la Cuenta: {cuenta.numero_cuenta} -> S/. {cuenta.saldo} ")
-        except ValueError as e:
-            print(f"Error: {e}")
+        except Exception as e:
+            print(f"Error inesperado: {e}")
 
     def retirar_del_cajero(self) -> None:
-        print(f"------  RETIRAR DINERO DEL CAJERO ------ ")
-        self._lista_de_usuarios()
-
-        dni_usuario = input("Ingrese DNI del usuario: ").strip()
-        usuario: "Usuario" = self.usuarios.get(dni_usuario)
-
-        if not usuario:
-            raise ValueError("Usuario no encontrado en el sistema")
-
-        print("------  CUENTAS DISPONIBLES ------ ")
-        for cuenta in usuario.cuentas:
-            print(f"- {cuenta}")
-
-        numero_cuenta = input("Ingrese el numero de cuenta: ").strip()        
-        cuenta: "Cuenta" = self.cuentas.get(numero_cuenta)
-
-        if not cuenta:
-            raise ValueError("Cuenta no encontrada en el Usuario asignado")
         
-        if cuenta.dni_usuario != usuario.dni:
-            raise ValueError("Esta cuenta no le pertenece a este usuario")
-
-        print(f"{cuenta.numero_cuenta} tiene un saldo disponible de S/. {cuenta.saldo}")
-
         try:
-            monto = float(input("Ingrese el monto que desea mover: "))
-            usuario.sumar_dinero(monto)
-            cuenta.debitar(monto)
+            print(f"------  RETIRAR DINERO DEL CAJERO ------ ")
+            numero_tarjeta = input("Insierte el numero de su tarjeta: ").strip()
+            tarjeta = self.tarjetas.get(numero_tarjeta)
 
-            print(f"Transaccion realizada exitosamente: ")
-            print(f"Nuevo saldo del Usuario: {usuario.nombre} -> S/. {usuario.saldo} ")
-            print(f"Nuevo saldo en la Cuenta: {cuenta.numero_cuenta} -> S/. {cuenta.saldo} ")
+            if not tarjeta:
+                raise ValueError("Tarjeta no reconocida")
+            
+            if tarjeta.estado == False:
+                raise ValueError("Esta tarjeta se encuentra bloqueada")
+            
+            intentos = 0
+            auntenticacion = False
+
+            while intentos < 3:
+                pin_ingreasdo = input("Ingrese su PIN de 6 digitos").strip()
+
+                if pin_ingreasdo == tarjeta.pin:
+                    auntenticacion = True
+                    break
+                else:
+                    intentos += 1
+                    restantes = 3 - intentos
+
+                    if restantes > 0:
+                        print(f"PIN incorrecto. Le quedan {restantes} intentos")
+                    else:
+                        tarjeta._cambiar_estado()
+                        raise ValueError("Supero los 3 intentos maximos. Se ha bloqueado su tarjeta")
+            
+            if auntenticacion:
+                cuenta = self.cuentas.get(numero_tarjeta)
+                
+                if not cuenta:
+                    raise ValueError("Error crítico: Tarjeta sin cuenta vinculada.")
+                
+        except ValidationError as e:
+            print("\nError en los datos ingresados:")
+            for error in e.errors():
+                print(f" - {error['msg']}")
         except ValueError as e:
             print(f"Error: {e}")
-
+        except Exception as e:
+            print(f"Error inesperado: {e}")  
 
 
 
