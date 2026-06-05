@@ -1,7 +1,5 @@
 from pydantic import BaseModel, Field, field_validator, ValidationError
 from typing import List
-from .tarjeta import Tarjeta
-
 class Cuenta:
     
     def __init__(self, numero_cuenta: str, tipo_cuenta: str, dni_usuario: str):
