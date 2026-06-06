@@ -187,7 +187,7 @@ class SistemaCajero:
     def _autenticar_usuario(self) -> "Cuenta":
         
         print("\n" + "="*40)
-        print(" 🏧 INGRESO AL CAJERO AUTOMÁTICO ")
+        print(" INGRESO AL CAJERO AUTOMÁTICO ")
         print("="*40)
 
         numero_tarjeta = input("Inserte el numero de su tarjeta: ").strip()
@@ -203,7 +203,7 @@ class SistemaCajero:
             pin_ingresado = input("Ingrese su PIN de 6 digitos: ").strip()
 
             if len(pin_ingresado) != 6 or not pin_ingresado.isdigit():
-                print("❌ El PIN debe estar formado de 6 digitos numericos")
+                print(" El PIN debe estar formado de 6 digitos numericos")
                 continue
 
             if tarjeta.validar_pin(pin_ingresado):
@@ -211,7 +211,7 @@ class SistemaCajero:
                 break
             else:
                 restantes = 3 - tarjeta.intentos
-                print(f"❌ PIN incorrecto. Le quedan {restantes} intentos")
+                print(f" PIN incorrecto. Le quedan {restantes} intentos")
                 
 
         
@@ -219,7 +219,7 @@ class SistemaCajero:
         if not cuenta:
             raise ValueError("Error de sistema: Tarjeta sin cuenta vinculada.")
             
-        print("\n✅ Autenticación exitosa.")
+        print(" Autenticación exitosa.")
         return cuenta 
 
     def retirar_dinero_cajero(self) -> None:
@@ -230,7 +230,7 @@ class SistemaCajero:
             
             
             print("\n" + "-"*30)
-            print(" 🏧 RETIRO DE EFECTIVO ")
+            print("RETIRO DE EFECTIVO ")
             print("-" * 30)
             
             print(f"[INFO] Saldo disponible: S/. {cuenta_validada.saldo:.2f}")
