@@ -40,7 +40,7 @@ class CajeroUI:
         while True:
             try:
                 print("========================================")
-                print("--- ADMINISTRACION  ---")
+                print("------ ADMINISTRACION  ------")
                 print("========================================")
                 print("[1]. Registrar nuevo cliente")
                 print("[2]. Aperturar cuenta bancaria")
@@ -49,11 +49,13 @@ class CajeroUI:
                 print("[5]. Ver total de Transacciones") 
                 print("[6]. Regresar al menu principal")
 
-                opc = input("Ingrese una opcion: ").strip()
+                opc = input("\nIngrese una opcion: ").strip()
 
                 match(opc):
                     case "1":
-                        print("\n--- REGISTRO DE USUARIOS ---")
+                        print("========================================")
+                        print("------ REGISTRO DE USUARIOS ------")
+                        print("========================================")
                         try: 
                             nombre = input("Ingrese su nombre: ").strip().title()
                             dni = input("Ingrese su DNI: ").strip()
@@ -61,7 +63,7 @@ class CajeroUI:
 
                             dni_registrado = self.sistema_cajero.crear_usuario(nombre, dni, saldo)
 
-                            print(f"Usuario con DNI {dni_registrado} ha sido registrado con exito en el Sistema")
+                            print(f"\nUsuario con DNI {dni_registrado} ha sido registrado con exito en el Sistema")
 
                         except ValidationError as e:
                             print("Ha ocurrido un error en los datos ingresados:")
@@ -71,17 +73,38 @@ class CajeroUI:
                             print(f"Ha ocurrido un error en la logica: {e}")
 
                     case "2":
-                        print(f"\n------ VINCULACION DE CUENTAS ------ ")
+                        print("========================================")
+                        print(f"------ VINCULACION DE CUENTAS ------ ")
+                        print("========================================")
                         try:
-                            self.sistema_cajero._listar_usuarios()
+                            usuarios = self.sistema_cajero._listar_usuarios()
+                            print("------ LISTA DE USUARIOS ------")
+                            for usuario in usuarios.values():
+                                print(f"- {usuario}")
+                            print("--------------------------------")
+
                             dni_usuario = input("Ingrese DNI del usuario al que desea vincular: ").strip()
 
-                            print(f"\n------ CREACION DE CUENTA ------ ")
-                            tipo_cuenta = input("Ingrese el tipo de cuenta que desea: ").strip()
+                            print("========================================")
+                            print(f"------ CREACION DE CUENTA ------ ")
+                            print("========================================")
+                            print("[1]. Ahorro")
+                            print("[2]. Corriente")
+
+                            opc = input("Ingrese el tipo de cuenta que desea: ").strip()
+                            tipo_cuenta=""
+
+                            match(opc):
+                                case "1":
+                                    tipo_cuenta="Ahorro"
+                                case "2":
+                                    tipo_cuenta="Corriente"
+                                case _:
+                                    raise ValueError("Tipo de cuenta invalida")
 
                             cuenta_registrada = self.sistema_cajero.crear_y_vincular_cuenta(dni_usuario, tipo_cuenta)
 
-                            print(f"La cuenta {cuenta_registrada} ha sido vinculada con exito")
+                            print(f"\nLa cuenta {cuenta_registrada} de tipo {tipo_cuenta} ha sido vinculada con exito")
 
                         except ValidationError as e:
                             print("Ha ocurrido un error en los datos ingresados:")
@@ -91,20 +114,36 @@ class CajeroUI:
                             print(f"Ha ocurrido un error en la logica: {e}")
 
                     case "3":
-                        print(f"\n------  VINCULACION DE TARJETAS ------ ")
+                        print("========================================")
+                        print(f"------  VINCULACION DE TARJETAS ------ ")
+                        print("========================================")
 
                         try:
-                            self.sistema_cajero._listar_usuarios()
+                            usuarios = self.sistema_cajero._listar_usuarios()
+
+                            print("------ LISTA DE USUARIOS ------")
+                            for usuario in usuarios.values():
+                                print(f"- {usuario}")
+                            print("--------------------------------")
+
                             dni_usuario = input("Ingrese DNI del usuario al que desea vincular: ").strip()
-                            self.sistema_cajero._listar_cuentas_por_usuario(dni_usuario)
+                            cuentas = self.sistema_cajero._listar_cuentas_por_usuario(dni_usuario)
+
+                            print("------ LISTA DE CUENTAS ------")
+                            for cuenta in cuentas:
+                                print(f"- {cuenta}")
+                            print("--------------------------------")
+
                             numero_cuenta = input("Ingrese el Numero de Cuenta de la Cuenta a la que desea vincular: ").strip()
 
-                            print(f"\n------  CREACION DE TARJETA ------ ")
+                            print("========================================")
+                            print(f"------  CREACION DE TARJETA ------ ")
+                            print("========================================")
                             pin = input("Ingrese el PIN para su nueva tarjeta: ").strip()
 
                             tarjeta_creada = self.sistema_cajero.crear_y_vincular_tarjeta(dni_usuario, numero_cuenta, pin)
 
-                            print(f"La tarjeta {tarjeta_creada} ha sido vinculada exitosamente a la cuenta ")
+                            print(f"\nLa tarjeta {tarjeta_creada} ha sido vinculada exitosamente a la cuenta ")
 
                         except ValidationError as e:
                             print("Ha ocurrido un error en los datos ingresados:")
@@ -115,16 +154,29 @@ class CajeroUI:
 
                     case "4":
                         try:
-                            print(f"------  DEPOSITAR FONDO A CUENTA ------ ")
-                            self.sistema_cajero._listar_usuarios()
+                            print("========================================")
+                            print(f"------  DEPOSITAR FONDO A CUENTA ------")
+                            print("========================================")
+
+                            print("------ LISTA DE USUARIOS ------")
+                            for usuario in usuarios.values():
+                                print(f"- {usuario}")
+                            print("--------------------------------")
+
                             dni_usuario = input("Ingrese DNI del usuario: ").strip()
-                            self.sistema_cajero._listar_cuentas_por_usuario(dni_usuario)
+                            cuentas = self.sistema_cajero._listar_cuentas_por_usuario(dni_usuario)
+
+                            print("------ LISTA DE CUENTAS ------")
+                            for cuenta in cuentas:
+                                print(f"- {cuenta}")
+                            print("--------------------------------")
+
                             numero_cuenta = input("Ingrese el numero de cuenta: ").strip()
                             monto = float(input("Ingres el monto a depositar: "))
 
                             nuevo_efectivo, nuevo_saldo = self.sistema_cajero.depositar_fondos_cuenta(dni_usuario, numero_cuenta, monto)
 
-                            print(" ransacción realizada exitosamente.")
+                            print("\nTransacción realizada exitosamente.")
                             print(f"Nuevo efectivo del usuario: S/. {nuevo_efectivo}")
                             print(f"Nuevo saldo en la cuenta bancaria: S/. {nuevo_saldo}")
 
@@ -175,7 +227,7 @@ class CajeroUI:
                 while True:
                     try:
                         print("========================================")
-                        print(f"--- BIENVENIDO: {cuenta_activa.numero_cuenta} ---")
+                        print(f"--- BIENVENIDO: {self.sistema_cajero.obtener_nombre_por_cuenta(cuenta_activa.numero_cuenta)} ---")
                         print("========================================")
                         print("[1] Consultar Saldo")
                         print("[2] Retirar Efectivo")
@@ -193,7 +245,7 @@ class CajeroUI:
                                     monto = float(input("Ingrese el monto que desea retirar: S/. "))
                                     transaccion, usuario, cuenta =self.sistema_cajero.retirar_dinero_cajero(cuenta_activa, monto)
 
-                                    print(f"\Transaccion aprobada")
+                                    print(f"Transaccion aprobada")
                                     print(f"Por favor, retire sus S/. {monto} de la bandeja")
                                     print(f"Su nuevo saldo de cuenta es: S/. {cuenta.saldo}")
                                     print(f"Su nuevo saldo de usuario es: S/. {usuario.saldo}")
