@@ -1,7 +1,6 @@
 from utils import limpiar_strings
-from random import randint
-from pydantic import BaseModel, field_validator, Field
 from bcrypt import gensalt, hashpw, checkpw
+from pydantic import BaseModel, field_validator
 
 class Tarjeta:
 
