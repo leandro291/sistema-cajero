@@ -1,6 +1,6 @@
-from typing import Dict
+from typing import Dict, List
 from pydantic import ValidationError
-from models import Cuenta, CuentaSchema, Usuario, UsuarioSchema, Tarjeta, TarjetaSchema, Cajero, CajeroSchema
+from models import Cuenta, CuentaSchema, Usuario, UsuarioSchema, Tarjeta, TarjetaSchema, Cajero, CajeroSchema, Transaccion, TransaccionSchema
 from random import random, choices, randint
 
 class SistemaCajero:
@@ -9,6 +9,15 @@ class SistemaCajero:
         self.cuentas: Dict[str, "Cuenta"] = {}
         self.tarjetas: Dict[str, "Tarjeta"] = {}
         self.cajeros: Dict[str, "Cajero"] = {}
+        self.transacciones: Dict[str, "Transaccion"] = {}
+        self._contador_trx = 1
+
+    def obtener_historial_transacciones(self) -> Dict[str, "Transaccion"]:
+
+        if len(self.transacciones) == 0:
+            raise ValueError("El sistema no cuenta con transacciones registradas")
+        
+        return self.transacciones
 
     #No deben devolver prints aca
     def _listar_usuarios(self) -> None:
@@ -158,10 +167,10 @@ class SistemaCajero:
             raise ValueError(f"No existen usuarios registradas en el sistema")
         
         if len(self.cuentas) == 0:
-            raise ValueError("No existen cuentas bancarias registradas en el sistema para vincular una tarjeta.")
+            raise ValueError("No existen cuentas bancarias registradas en el sistema para vincular una tarjeta")
             
         if monto <= 0:
-            raise ValueError("El DNI ingresado no se encuentra registrado")
+            raise ValueError("El monto a depositar debe ser mayor a cero")
 
         usuario= self.usuarios.get(dni_usuario)
         if not usuario:
@@ -175,14 +184,14 @@ class SistemaCajero:
             raise ValueError("Esta cuenta no le pertenece a este usuario")
         
         if  monto > usuario.saldo:
-            raise ValueError("El usuario no tiene suficiente dinero en efectivo para este depósito.")
+            raise ValueError("El usuario no tiene suficiente dinero en efectivo para este depósito")
 
         cuenta.acreditar(monto)
-        usuario.sumar_dinero(monto)
+        usuario.restar_dinero(monto)
 
         return usuario.saldo, cuenta.saldo
 
-    def _autenticar_usuario(self, numero_tarjeta: str,pin_ingresado: str ) -> "Cuenta":
+    def _autenticar_usuario(self, numero_tarjeta: str,pin_ingresado: str) -> "Cuenta":
 
         tarjeta = self.tarjetas.get(numero_tarjeta)
 
@@ -205,7 +214,7 @@ class SistemaCajero:
     
         return cuenta 
 
-    def retirar_dinero_cajero(self, cuenta: "Cuenta", monto: float) -> tuple:
+    def retirar_dinero_cajero(self, cuenta: "Cuenta", monto: float) -> tuple["Transaccion", "Usuario"]:
 
         usuario = self.usuarios.get(cuenta.dni_usuario)
 
@@ -221,9 +230,46 @@ class SistemaCajero:
         cuenta.debitar(monto)
         usuario.sumar_dinero(monto)
 
-        return usuario, cuenta
-        
+        nuevo_id = f"TRX-{self._contador_trx:04d}"
 
+        validar_transaccion = TransaccionSchema(
+            numero_transaccion=nuevo_id,
+            numero_cajero="ATM-001",
+            numero_cuenta=cuenta.numero_cuenta,
+            monto=monto,
+            tipo="Retiro"
+        )
+
+        transaccion = Transaccion(
+            numero_transaccion=validar_transaccion.numero_transaccion,
+            numero_cajero=validar_transaccion.numero_cajero,
+            numero_cuenta=validar_transaccion.numero_cuenta,
+            monto=validar_transaccion.monto,
+            tipo=validar_transaccion.tipo
+        )
+
+        self.transacciones[transaccion.numero_transaccion] = transaccion
+        cuenta.vincular_transaccion(transaccion.numero_transaccion)
+
+        self._contador_trx += 1
+
+        return transaccion, usuario
+        
+    def transaccion_por_cuenta(self, cuenta: "Cuenta") -> List["Transaccion"]:
+        
+        if len(cuenta.historia_transacciones) == 0:
+            raise ValueError("No hay transacciones registradas para esta cuenta")
+        
+        transacciones_cuenta = []
+
+        for numero_transaccion in cuenta.historia_transacciones:
+            
+            transaccion = self.transacciones.get(numero_transaccion)
+
+            if transaccion:
+                transacciones_cuenta.append(transaccion)
+
+        return transacciones_cuenta
             
 
 
