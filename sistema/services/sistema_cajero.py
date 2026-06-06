@@ -7,9 +7,10 @@ class SistemaCajero:
     def __init__(self):
         self.usuarios: Dict[str, "Usuario"]  = {}
         self.cuentas: Dict[str, "Cuenta"] = {}
-        self.tarjetas: Dict[str, "Tarjeta"] = {}
-        self.cajeros: Dict[str, "Cajero"] = {}
         self.transacciones: Dict[str, "Transaccion"] = {}
+        self.tarjetas: Dict[str, "Tarjeta"] = {}
+        self.cajero_principal = Cajero(numero_cajero="ATM-001", dinero_disponible=50000.0)
+
         self._contador_trx = 1
 
     def obtener_historial_transacciones(self) -> Dict[str, "Transaccion"]:
@@ -42,7 +43,6 @@ class SistemaCajero:
         print(f"\n------  CUENTAS DISPONIBLES DE {usuario.nombre.upper()} ------ ")
         for cuenta in usuario.cuentas:
             print(f"- {cuenta}")
-
 
     def crear_usuario(self, nombre: str, dni: str, saldo: float) -> str:
 
@@ -214,7 +214,7 @@ class SistemaCajero:
     
         return cuenta 
 
-    def retirar_dinero_cajero(self, cuenta: "Cuenta", monto: float) -> tuple["Transaccion", "Usuario"]:
+    def retirar_dinero_cajero(self, cuenta: "Cuenta", monto: float) -> tuple["Transaccion", "Usuario", "Cuenta"]:
 
         usuario = self.usuarios.get(cuenta.dni_usuario)
 
@@ -228,6 +228,7 @@ class SistemaCajero:
             raise ValueError("Fondos insuficientes para realizar este retiro.")
             
         cuenta.debitar(monto)
+        self.cajero_principal.dispensar_efectivo(monto)
         usuario.sumar_dinero(monto)
 
         nuevo_id = f"TRX-{self._contador_trx:04d}"
@@ -248,12 +249,13 @@ class SistemaCajero:
             tipo=validar_transaccion.tipo
         )
 
+
         self.transacciones[transaccion.numero_transaccion] = transaccion
         cuenta.vincular_transaccion(transaccion.numero_transaccion)
 
         self._contador_trx += 1
 
-        return transaccion, usuario
+        return transaccion, usuario, cuenta
         
     def transaccion_por_cuenta(self, cuenta: "Cuenta") -> List["Transaccion"]:
         
