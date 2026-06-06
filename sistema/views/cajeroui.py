@@ -9,20 +9,20 @@ class CajeroUI:
         while True:
             try:
                 print("========================================")
-                print("SISTEMA BANCARIO Y CAJERO ATM")
+                print("--- SISTEMA BANCARIO Y CAJERO ATM ---")
                 print("========================================")
                 print("[1]. Administrar")
                 print("[2]. Usar Cajero")
                 print("[3]. Salir")
 
-                opc = input("Ingrese una opcion: ").strip()
+                opc = input("Seleccione una opcion: ").strip()
 
                 match(opc):
                     case "1":
-                        self.menu_administrador()
+                        self.submenu_administrador()
 
                     case "2":
-                        pass
+                        self.submenu_cajero()
 
                     case "3":
                         print(f"Saliendo del sistema....")
@@ -36,10 +36,12 @@ class CajeroUI:
             except Exception as e:
                 print(f"Ha ocurrio un error inesperado {e}")
     
-    def menu_administrador(self) -> None:
+    def submenu_administrador(self) -> None:
         while True:
             try:
+                print("========================================")
                 print("--- ADMINISTRACION BANCARIA ---")
+                print("========================================")
                 print("[1]. Registrar nuevo cliente")
                 print("[2]. Aperturar cuenta bancaria")
                 print("[3]. Emitir tarjeta de débito")
@@ -142,3 +144,76 @@ class CajeroUI:
 
             except Exception as e:
                 print(f"Ha ocurrido un error: {e}")
+
+    def submenu_cajero(self) -> None:
+
+        print("========================================")
+        print("--- INGRESO AL CAJERO (ATM) ---")
+        print("========================================")
+
+        numero_tarjeta = input("Inserte el numero de su tarjeta: ").strip()
+        autenticado = False
+
+        while not autenticado:
+            pin_ingresado = input("Ingrese su PIN de 6 dígitos (o 'X' para cancelar): ").strip()
+
+            if pin_ingresado.upper() == 'X':
+                print("Operación cancelada. Retirando tarjeta...")
+                break
+
+            try:
+                cuenta_activa = self.sistema_cajero._autenticar_usuario(numero_tarjeta, pin_ingresado)
+                print("Autentificacion realizada exitosamente")
+                autenticado = True
+
+                while True:
+                    try:
+                        print("========================================")
+                        print(f"--- BIENVENIDO: {cuenta_activa.numero_cuenta} ---")
+                        print("========================================")
+                        print("[1] Consultar Saldo")
+                        print("[2] Retirar Efectivo")
+                        print("[3] Ver Historial de Movimientos")
+                        print("[4] Retirar Tarjeta")
+
+                        opc = input("Seleccione una opcion: ").strip()
+
+                        match(opc):
+                            case "1":
+                                print(f"El saldo actual de la cuenta es S/. {cuenta_activa.saldo}")
+
+                            case "2":
+                                monto = float(input("Ingrese el monto que desea retirar: S/. "))
+                                usuario, cuenta =self.sistema_cajero.retirar_dinero_cajero(cuenta_activa, monto)
+
+                                print(f"\nTransacción aprobada")
+                                print(f"Por favor, retire sus S/. {monto:.2f} de la bandeja.")
+                                print(f"Su nuevo saldo de cuenta es: S/. {cuenta.saldo:.2f}")
+                                print(f"Su nuevo saldo de usuario es: S/. {usuario.saldo:.2f}")
+
+                            case "3":
+                                #Agregar clase transaccion
+                                pass
+
+                            case "4":
+                                print(f"Retirando tarjeta...")
+                                break
+                        
+                            case _:
+                                print(f"Opcion invalida. Vuelva a seleccionar una opcion")
+                                continue
+
+                    except KeyboardInterrupt as e:
+                        print(f"Ha ocurrido un error en teclado: {e}")
+                    except Exception as e:
+                        print(f"Ha ocurrio un error inesperado {e}")
+                    except ValueError as e:
+                        print(f"Acceso denegado: {e}")
+
+
+            except Exception as e:
+                print(e)
+
+
+        
+
