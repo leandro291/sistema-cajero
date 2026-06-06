@@ -1,6 +1,6 @@
 from typing import List
 from utils import limpiar_strings
-from pydantic import BaseModel, Field, field_validator, ValidationError
+from pydantic import BaseModel, Field, field_validator
 
 class Usuario:
     
