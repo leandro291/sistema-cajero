@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class Transaccion:
     def __init__(self, numero_transaccion: str, numero_cajero: str, numero_cuenta: str, monto: float, tipo: str):
@@ -26,6 +26,6 @@ class TransaccionSchema(BaseModel):
     numero_transaccion: str
     numero_cajero: str
     numero_cuenta: str
-    monto: float
+    monto: float = Field(gt=0.0)
     tipo: str
 
