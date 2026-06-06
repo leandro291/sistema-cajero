@@ -9,6 +9,16 @@ class Transaccion:
         self.monto = monto
         self.tipo = tipo
         self.fecha = now().strftime("%Y-%m-%d %H:%M:%S")
+
+    def __str__(self):
+        return str({
+            "Numero de Transaccion" : self.numero_transaccion,
+            "Numero de Cajero" : self.numero_cajero,
+            "Numero de Cuenta" : self.numero_cuenta,
+            "Monto" : self.monto,
+            "Tipo" : self.tipo,
+            "Fecha" : self.fecha,
+        })
     
 class TransaccionSchema(BaseModel):
 
