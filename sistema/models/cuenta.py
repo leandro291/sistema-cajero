@@ -1,5 +1,5 @@
 from typing import List
-from pydantic import BaseModel, Field, field_validator, ValidationError
+from pydantic import BaseModel, field_validator
 class Cuenta:
     
     def __init__(self, numero_cuenta: str, tipo_cuenta: str, dni_usuario: str):
@@ -40,3 +40,12 @@ class CuentaSchema(BaseModel):
     numero_cuenta: str
     tipo_cuenta: str
     dni_usuario: str 
+
+    @field_validator('dni_usuario')
+    @classmethod
+    def validate_dni(cls, valor: str) -> str:
+
+        if len(valor) != 8 or not valor.isdigit():
+            raise ValueError("El DNI debe estar formado de 8 digitos")
+        
+        return valor
