@@ -189,17 +189,28 @@ class CajeroUI:
                                 print(f"El saldo actual de la cuenta es S/. {cuenta_activa.saldo}")
 
                             case "2":
-                                monto = float(input("Ingrese el monto que desea retirar: S/. "))
-                                usuario, cuenta =self.sistema_cajero.retirar_dinero_cajero(cuenta_activa, monto)
+                                try:
+                                    monto = float(input("Ingrese el monto que desea retirar: S/. "))
+                                    transaccion, usuario =self.sistema_cajero.retirar_dinero_cajero(cuenta_activa, monto)
 
-                                print(f"\nTransacción aprobada")
-                                print(f"Por favor, retire sus S/. {monto:.2f} de la bandeja.")
-                                print(f"Su nuevo saldo de cuenta es: S/. {cuenta.saldo:.2f}")
-                                print(f"Su nuevo saldo de usuario es: S/. {usuario.saldo:.2f}")
+                                    print(f"\Transaccion aprobada")
+                                    print(f"Por favor, retire sus S/. {monto} de la bandeja")
+                                    print(f"Su nuevo saldo de cuenta es: S/. {transaccion.numero_cuenta}")
+                                    print(f"Su nuevo saldo de usuario es: S/. {usuario.saldo}")
+                                except ValidationError as e:
+                                    print("Ha ocurrido un error en los datos ingresados:")
+                                    for error in e.errors():
+                                        print(f" - {error['msg']}")
+                                except ValueError as e:
+                                    print(f"Ha ocurrido un error en la logica: {e}")
 
                             case "3":
-                                #Agregar clase transaccion
-                                pass
+                                try:
+                                    transacciones_cuenta = self.sistema_cajero.historial_por_cuenta(cuenta_activa)
+                                    for transaccion in transacciones_cuenta:
+                                        print(transaccion)
+                                except ValueError as e:
+                                    print(f"Ha ocurrido un error en la logica: {e}")
 
                             case "4":
                                 print(f"Retirando tarjeta...")
