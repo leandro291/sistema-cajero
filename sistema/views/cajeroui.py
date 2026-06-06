@@ -40,13 +40,14 @@ class CajeroUI:
         while True:
             try:
                 print("========================================")
-                print("--- ADMINISTRACION BANCARIA ---")
+                print("--- ADMINISTRACION  ---")
                 print("========================================")
                 print("[1]. Registrar nuevo cliente")
                 print("[2]. Aperturar cuenta bancaria")
-                print("[3]. Emitir tarjeta de débito")
-                print("[4]. Depositar efectivo a cuenta") 
-                print("[5]. Regresar al menu principal")
+                print("[3]. Emitir tarjeta de debito")
+                print("[4]. Depositar dinero a cuenta") 
+                print("[5]. Ver total de Transacciones") 
+                print("[6]. Regresar al menu principal")
 
                 opc = input("Ingrese una opcion: ").strip()
 
@@ -135,6 +136,11 @@ class CajeroUI:
                             print(f"Ha ocurrido un error en la logica: {e}")
 
                     case "5":
+                        transacciones = self.sistema_cajero.obtener_historial_transacciones()
+                        for transaccion in transacciones.values():
+                            print(transaccion)
+
+                    case "6":
                         print(f"Regresando al menu principal...")
                         break
 
