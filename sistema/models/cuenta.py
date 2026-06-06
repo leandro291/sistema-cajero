@@ -1,13 +1,14 @@
-from pydantic import BaseModel, Field, field_validator, ValidationError
 from typing import List
+from pydantic import BaseModel, Field, field_validator, ValidationError
 class Cuenta:
     
     def __init__(self, numero_cuenta: str, tipo_cuenta: str, dni_usuario: str):
-        self.numero_cuenta = numero_cuenta
+        self.numero_cuenta = numero_cuenta 
         self.tipo_cuenta = tipo_cuenta
         self.saldo: float = 0.0
         self.dni_usuario = dni_usuario
-        self.tarjetas: List[str] = []
+        self.tarjetas: List[str] = [] 
+        self.historia_transacciones: List[str] = [] 
 
     def _validar_monto(self, monto: float) -> float:
         if not isinstance(monto, (int, float)):
@@ -18,6 +19,9 @@ class Cuenta:
 
     def vincular_tarjeta(self, numero_tarjeta: str) -> None:
         self.tarjetas.append(numero_tarjeta)
+
+    def vincular_transaccion(self, numero_transaccion: str) -> None:
+        self.historia_transacciones.append(numero_transaccion)
             
     def acreditar(self, monto: float) -> None:
         monto_validado = self._validar_monto(monto)
