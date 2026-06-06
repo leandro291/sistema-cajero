@@ -20,17 +20,14 @@ class SistemaCajero:
         
         return self.transacciones
 
-    #No deben devolver prints aca
-    def _listar_usuarios(self) -> None:
+    def _listar_usuarios(self) -> Dict[str, "Usuario"]:
 
         if len(self.usuarios) == 0:
             raise ValueError(f"No existen usuarios registradas en el sistema")
 
-        print("\n----- LISTA DE USUARIOS -----")
-        for key, values in self.usuarios.items():
-            print(f"{key} -> {values}")
+        return self.usuarios
 
-    def _listar_cuentas_por_usuario(self, dni: str) -> None:
+    def _listar_cuentas_por_usuario(self, dni: str ) -> List["Cuenta"]:
         
         if len(self.cuentas) == 0:
             raise ValueError("No existen cuentas bancarias registradas en el sistema")
@@ -40,9 +37,16 @@ class SistemaCajero:
         if not usuario:
             raise ValueError("El DNI ingresado no se encuentra registrado")
         
-        print(f"\n------  CUENTAS DISPONIBLES DE {usuario.nombre.upper()} ------ ")
-        for cuenta in usuario.cuentas:
-            print(f"- {cuenta}")
+        return usuario.cuentas
+
+    def _listar_tarjetas_por_cuenta(self, numero_cuenta: str) -> List["Tarjeta"]:
+        
+        if len(self.cuentas) == 0:
+            raise ValueError("No existen cuentas bancarias registradas en el sistema")
+        
+        cuenta = self.cuentas.get(numero_cuenta)
+
+        return cuenta.tarjetas
 
     def crear_usuario(self, nombre: str, dni: str, saldo: float) -> str:
 
@@ -231,7 +235,7 @@ class SistemaCajero:
         self.cajero_principal.dispensar_efectivo(monto)
         usuario.sumar_dinero(monto)
 
-        nuevo_id = f"TRX-{self._contador_trx:04d}"
+        nuevo_id = f"TRX-{self._contador_trx:03d}"
 
         validar_transaccion = TransaccionSchema(
             numero_transaccion=nuevo_id,
