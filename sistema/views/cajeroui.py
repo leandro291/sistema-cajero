@@ -191,11 +191,11 @@ class CajeroUI:
                             case "2":
                                 try:
                                     monto = float(input("Ingrese el monto que desea retirar: S/. "))
-                                    transaccion, usuario =self.sistema_cajero.retirar_dinero_cajero(cuenta_activa, monto)
+                                    transaccion, usuario, cuenta =self.sistema_cajero.retirar_dinero_cajero(cuenta_activa, monto)
 
                                     print(f"\Transaccion aprobada")
                                     print(f"Por favor, retire sus S/. {monto} de la bandeja")
-                                    print(f"Su nuevo saldo de cuenta es: S/. {transaccion.numero_cuenta}")
+                                    print(f"Su nuevo saldo de cuenta es: S/. {cuenta.saldo}")
                                     print(f"Su nuevo saldo de usuario es: S/. {usuario.saldo}")
                                 except ValidationError as e:
                                     print("Ha ocurrido un error en los datos ingresados:")
@@ -206,7 +206,7 @@ class CajeroUI:
 
                             case "3":
                                 try:
-                                    transacciones_cuenta = self.sistema_cajero.historial_por_cuenta(cuenta_activa)
+                                    transacciones_cuenta = self.sistema_cajero.transaccion_por_cuenta(cuenta_activa)
                                     for transaccion in transacciones_cuenta:
                                         print(transaccion)
                                 except ValueError as e:
