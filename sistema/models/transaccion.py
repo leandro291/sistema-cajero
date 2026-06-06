@@ -1,4 +1,4 @@
-from datetime import now
+from datetime import datetime
 from pydantic import BaseModel
 
 class Transaccion:
@@ -8,16 +8,17 @@ class Transaccion:
         self.numero_cuenta = numero_cuenta 
         self.monto = monto
         self.tipo = tipo
-        self.fecha = now().strftime("%Y-%m-%d %H:%M:%S")
+        self.fecha = datetime.now()
 
     def __str__(self):
+        fecha_str = self.fecha.strftime("%d/%m/%Y %H:%M:%S")
         return str({
             "Numero de Transaccion" : self.numero_transaccion,
             "Numero de Cajero" : self.numero_cajero,
             "Numero de Cuenta" : self.numero_cuenta,
             "Monto" : self.monto,
             "Tipo" : self.tipo,
-            "Fecha" : self.fecha,
+            "Fecha" : fecha_str
         })
     
 class TransaccionSchema(BaseModel):
