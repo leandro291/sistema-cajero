@@ -5,7 +5,8 @@ from pydantic import BaseModel, Field
 
 class Cajero:
     
-    def __init__(self, dinero_disponible: float):
+    def __init__(self, numero_cajero: str, dinero_disponible: float):
+        self.numero_cajero = numero_cajero
         self.dinero_disponible = dinero_disponible
 
     def retirar_dinero(self, cuenta: "Cuenta", tarjeta: "Tarjeta", pin: str, monto: float) -> None:
