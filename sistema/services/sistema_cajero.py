@@ -13,6 +13,20 @@ class SistemaCajero:
 
         self._contador_trx = 1
 
+    def obtener_nombre_por_cuenta(self, numero_cuenta) -> str:
+        
+        cuenta = self.cuentas.get(numero_cuenta)
+
+        if not cuenta:
+            raise ValueError("La cuenta ingresada no existe")
+        
+        usuario = self.usuarios.get(cuenta.dni_usuario)
+
+        if not usuario:
+            raise ValueError("El usuario ingresado no existe")
+        
+        return usuario.nombre
+
     def obtener_historial_transacciones(self) -> Dict[str, "Transaccion"]:
 
         if len(self.transacciones) == 0:
