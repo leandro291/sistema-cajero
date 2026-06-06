@@ -34,8 +34,6 @@ class SistemaCajero:
         for cuenta in usuario.cuentas:
             print(f"- {cuenta}")
 
-    def _listar_tarjeas_por_cuenta(self, numero_cuenta: str) -> None:
-        pass
 
     def crear_usuario(self, nombre: str, dni: str, saldo: float) -> str:
 
@@ -184,13 +182,8 @@ class SistemaCajero:
 
         return usuario.saldo, cuenta.saldo
 
-    def _autenticar_usuario(self) -> "Cuenta":
-        
-        print("\n" + "="*40)
-        print(" INGRESO AL CAJERO AUTOMÁTICO ")
-        print("="*40)
+    def _autenticar_usuario(self, numero_tarjeta: str,pin_ingresado: str ) -> "Cuenta":
 
-        numero_tarjeta = input("Inserte el numero de su tarjeta: ").strip()
         tarjeta = self.tarjetas.get(numero_tarjeta)
 
         if not tarjeta:
@@ -199,66 +192,39 @@ class SistemaCajero:
         if not tarjeta.estado:
             raise ValueError("Esta tarjeta se encuentra bloqueada por seguridad")
         
-        while True:
-            pin_ingresado = input("Ingrese su PIN de 6 digitos: ").strip()
+        if len(pin_ingresado) != 6 or not pin_ingresado.isdigit():
+            raise ValueError("El PIN debe estar formado exactamente por 6 dígitos numericos")
 
-            if len(pin_ingresado) != 6 or not pin_ingresado.isdigit():
-                print(" El PIN debe estar formado de 6 digitos numericos")
-                continue
-
-            if tarjeta.validar_pin(pin_ingresado):
-                
-                break
-            else:
-                restantes = 3 - tarjeta.intentos
-                print(f" PIN incorrecto. Le quedan {restantes} intentos")
-                
-
-        
+        if not tarjeta.validar_pin(pin_ingresado):
+            restantes = 3 - tarjeta.intentos
+            raise ValueError(f"PIN incorrecto. Le quedan {restantes} intentos")
+            
         cuenta = self.cuentas.get(tarjeta.numero_cuenta)
         if not cuenta:
-            raise ValueError("Error de sistema: Tarjeta sin cuenta vinculada.")
-            
-        print(" Autenticación exitosa.")
+            raise ValueError("Error de sistema: Tarjeta sin cuenta vinculada")
+    
         return cuenta 
 
-    def retirar_dinero_cajero(self) -> None:
-        
-        try:
+    def retirar_dinero_cajero(self, cuenta: "Cuenta", monto: float) -> tuple:
 
-            cuenta_validada = self._autenticar_usuario()
+        usuario = self.usuarios.get(cuenta.dni_usuario)
+
+        if not usuario:
+            raise ValueError("Usuario no encontrado en el sistema")
+        
+        if monto <= 0:
+            raise ValueError("Debe ingresar un monto mayor a cero.")
             
+        if monto > cuenta.saldo:
+            raise ValueError("Fondos insuficientes para realizar este retiro.")
             
-            print("\n" + "-"*30)
-            print("RETIRO DE EFECTIVO ")
-            print("-" * 30)
+        cuenta.debitar(monto)
+        usuario.sumar_dinero(monto)
+
+        return usuario, cuenta
+        
+
             
-            print(f"[INFO] Saldo disponible: S/. {cuenta_validada.saldo:.2f}")
-            monto_str = input("Ingrese el monto que desea retirar: S/. ").strip()
-            
-            if not monto_str.replace('.', '', 1).isdigit():
-                raise ValueError("El monto ingresado debe ser un valor numérico.")
-                
-            monto = float(monto_str)
-            
-            if monto <= 0:
-                raise ValueError("Debe ingresar un monto mayor a cero.")
-                
-            if monto > cuenta_validada.saldo:
-                raise ValueError("Fondos insuficientes para realizar este retiro.")
-                
-            cuenta_validada.debitar(monto) 
-            
-            print(f"\nTransacción aprobada")
-            print(f"Por favor, retire sus S/. {monto:.2f} de la bandeja.")
-            print(f"Su nuevo saldo es: S/. {cuenta_validada.saldo:.2f}")
-            print("Retirando tarjeta... Gracias por usar nuestro ATM.")
-            
-        except ValueError as e:
-            print(f"\nOperación rechazada: {e}")
-            print("Terminando sesión del ATM...")
-        except Exception as e:
-            print(f"\nError inesperado en el cajero: {e}")
 
 
 
