@@ -47,7 +47,7 @@ class UsuarioSchema(BaseModel):
     def validate_nombre(cls, valor: str):
         valor_limpio = limpiar_strings(valor)
         if not valor_limpio.replace(" ", "").isalpha():
-            raise ValueError("El nombre solo debe ser alfabetico")
+            raise ValueError(f"El nombre {valor} solo debe ser alfabetico")
         return valor_limpio
 
     @field_validator('dni')
@@ -55,7 +55,7 @@ class UsuarioSchema(BaseModel):
     def validate_dni(cls, valor: str) -> str:
         valor_limpio = limpiar_strings(valor)
         if not valor_limpio.isdigit():
-            raise ValueError("El DNI solo debe contener numeros")
+            raise ValueError(f"El DNI {valor} solo debe contener numeros")
         if len(valor_limpio) != 8:
-            raise ValueError("El DNI debe contar con 8 caracteres")
+            raise ValueError(f"El DNI {valor} debe contar con 8 caracteres")
         return valor_limpio

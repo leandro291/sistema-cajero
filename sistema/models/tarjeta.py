@@ -60,10 +60,10 @@ class TarjetaSchema(BaseModel):
         valor_limpio = limpiar_strings(valor)
 
         if not valor_limpio.isdigit():
-            raise ValueError("El numero ingresado debe tener solo digitos")
+            raise ValueError(f"El PIN {valor_limpio} ingresado debe tener solo digitos")
         
         if len(valor_limpio) != 6:
-            raise ValueError("El pin debe estar formado de 6 caracteres")
+            raise ValueError(f"El PIN {valor_limpio} debe estar formado de 6 caracteres")
         
         return valor_limpio
 

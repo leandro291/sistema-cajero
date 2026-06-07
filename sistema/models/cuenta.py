@@ -46,6 +46,6 @@ class CuentaSchema(BaseModel):
     def validate_dni(cls, valor: str) -> str:
 
         if len(valor) != 8 or not valor.isdigit():
-            raise ValueError("El DNI debe estar formado de 8 digitos")
+            raise ValueError(f"El DNI {valor} debe estar formado de 8 digitos")
         
         return valor
