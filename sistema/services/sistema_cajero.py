@@ -18,12 +18,12 @@ class SistemaCajero:
         cuenta = self.cuentas.get(numero_cuenta)
 
         if not cuenta:
-            raise ValueError("La cuenta ingresada no existe")
+            raise ValueError(f"Busqueda fallida: La cuenta {numero_cuenta} ingresada no existe")
         
         usuario = self.usuarios.get(cuenta.dni_usuario)
 
         if not usuario:
-            raise ValueError("El usuario ingresado no existe")
+            raise ValueError(f"Busqueda fallida: El DNI {cuenta.dni_usuario} ingresado no existe")
         
         return usuario.nombre
 
@@ -65,7 +65,7 @@ class SistemaCajero:
     def crear_usuario(self, nombre: str, dni: str, saldo: float) -> str:
 
         if dni in self.usuarios:
-            raise ValueError("El DNI registrado ya se encuentra en el sistema")
+            raise ValueError(f"Intento de duplicidad: El DNI {dni} registrado ya se encuentra en el sistema")
         
         validacion_usuario = UsuarioSchema(
             nombre=nombre,
@@ -90,7 +90,7 @@ class SistemaCajero:
         usuario = self.usuarios.get(dni_usuario)
 
         if not usuario:
-            raise ValueError("El DNI ingresado no se encuentra registrado")
+            raise ValueError(f"Busqueda fallida: El DNI  {dni_usuario} ingresado no se encuentra registrado")
         
         while True:
             numero_aleatorio = "".join(choices("0123456789", k=3))
@@ -127,18 +127,18 @@ class SistemaCajero:
         usuario = self.usuarios.get(dni_usuario)
 
         if not usuario:
-            raise ValueError("El DNI ingresado no se encuentra registrado.")
+            raise ValueError(f"Busqueda fallida: El DNI {dni_usuario} ingresado no se encuentra registrado")
 
         if len(usuario.cuentas) == 0:
-            raise ValueError(f"{usuario.nombre} no tiene cuentas registradas")
+            raise ValueError(f"Busqueda fallida: El usuario {usuario.nombre} no tiene cuentas registradas")
         
         cuenta = self.cuentas.get(numero_cuenta)
         
         if not cuenta:
-            raise ValueError("La cuenta ingresada no se encuentra registrado")
+            raise ValueError(f"Busqueda fallida: La cuenta {numero_cuenta} ingresada no se encuentra registrada")
         
         if len(pin) != 6 or not pin.isdigit():
-            raise ValueError("El PIN debe contener exactamente 6 dígitos numéricos.")
+            raise ValueError(f"Incoherencia de datos: El PIN {pin} debe contener exactamente 6 dígitos numéricos")
         
         while True:
 
@@ -188,21 +188,21 @@ class SistemaCajero:
             raise ValueError("No existen cuentas bancarias registradas en el sistema para vincular una tarjeta")
             
         if monto <= 0:
-            raise ValueError("El monto a depositar debe ser mayor a cero")
+            raise ValueError(f"Monto invalido (S/. {monto}): El monto debe ser mayor a cero")
 
         usuario= self.usuarios.get(dni_usuario)
         if not usuario:
-            raise ValueError("Usuario no encontrado en el sistema")
+            raise ValueError(f"Busqueda fallida: DNI {dni_usuario} no se encuentra en el sistema")
                 
         cuenta = self.cuentas.get(numero_cuenta)
         if not cuenta:
-            raise ValueError("Cuenta no encontrada en el Usuario asignado")
+            raise ValueError(f"Busqueda fallida: Numero de cuenta {numero_cuenta} no se encuentra en el usuario {usuario.nombre} asignado")
         
         if cuenta.dni_usuario != usuario.dni:
-            raise ValueError("Esta cuenta no le pertenece a este usuario")
+            raise ValueError(f"Incoherencia de datos: Numero de cuenta {numero_cuenta} no le pertenece a este usuario {usuario.nombre}")
         
         if  monto > usuario.saldo:
-            raise ValueError("El usuario no tiene suficiente dinero en efectivo para este depósito")
+            raise ValueError(f"Monto invalido (S/. {monto}): Usuario {usuario.nombre} no tiene suficiente dinero para este depósito")
 
         cuenta.acreditar(monto)
         usuario.restar_dinero(monto)
@@ -214,21 +214,21 @@ class SistemaCajero:
         tarjeta = self.tarjetas.get(numero_tarjeta)
 
         if not tarjeta:
-            raise ValueError("Tarjeta no reconocida")
+            raise ValueError(f"Busqueda fallida: {numero_tarjeta} no reconocida en el sistema")
         
         if not tarjeta.estado:
-            raise ValueError("Esta tarjeta se encuentra bloqueada por seguridad")
+            raise ValueError(f"Seguridad: {numero_tarjeta} se encuentra bloqueada por seguridad")
         
         if len(pin_ingresado) != 6 or not pin_ingresado.isdigit():
-            raise ValueError("El PIN debe estar formado exactamente por 6 dígitos numericos")
+            raise ValueError(f"Incoherencia de Datos: El PIN {pin_ingresado} debe estar formado exactamente por 6 dígitos numericos")
 
         if not tarjeta.validar_pin(pin_ingresado):
             restantes = 3 - tarjeta.intentos
-            raise ValueError(f"PIN incorrecto. Le quedan {restantes} intentos")
+            raise ValueError(f"Intento de tarjeta {numero_tarjeta}: PIN incorrecto. Le quedan {restantes} intentos")
             
         cuenta = self.cuentas.get(tarjeta.numero_cuenta)
         if not cuenta:
-            raise ValueError("Error de sistema: Tarjeta sin cuenta vinculada")
+            raise ValueError(f"Incoherencia de Datos: {numero_tarjeta} sin numero de cuenta vinculada")
     
         return cuenta 
 
@@ -237,13 +237,13 @@ class SistemaCajero:
         usuario = self.usuarios.get(cuenta.dni_usuario)
 
         if not usuario:
-            raise ValueError("Usuario no encontrado en el sistema")
+            raise ValueError(f"Busqueda fallida: El DNI {cuenta.dni_usuario} no encontrado en el sistema")
         
         if monto <= 0:
-            raise ValueError("Debe ingresar un monto mayor a cero.")
+            raise ValueError(f"Monto invalido (S/. {monto}): Debe ingresar un monto mayor a cero")
             
         if monto > cuenta.saldo:
-            raise ValueError("Fondos insuficientes para realizar este retiro.")
+            raise ValueError(f"Monto invalido (S/. {monto}): El numero de cuenta {cuenta.numero_cuenta} tiene fondos insuficientes para realizar este retiro")
             
         cuenta.debitar(monto)
         self.cajero_principal.dispensar_efectivo(monto)
@@ -278,7 +278,7 @@ class SistemaCajero:
     def transaccion_por_cuenta(self, cuenta: "Cuenta") -> List["Transaccion"]:
         
         if len(cuenta.historia_transacciones) == 0:
-            raise ValueError("No hay transacciones registradas para esta cuenta")
+            raise ValueError(f"{cuenta.numero_cuenta}: No hay transacciones registradas para esta cuenta")
         
         transacciones_cuenta = []
 
