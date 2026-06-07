@@ -1,5 +1,6 @@
 from services import SistemaCajero
 from pydantic import ValidationError
+from utils.logger import Logger
 
 class CajeroUI:
     def __init__(self):
@@ -66,10 +67,13 @@ class CajeroUI:
                             print(f"\nUsuario con DNI {dni_registrado} ha sido registrado con exito en el Sistema")
 
                         except ValidationError as e:
+                            
                             print("Ha ocurrido un error en los datos ingresados:")
                             for error in e.errors():
+                                Logger.add_to_log("error", str(error['msg']))
                                 print(f" - {error['msg']}")
                         except ValueError as e:
+                            Logger.add_to_log("warn", str(e))
                             print(f"Ha ocurrido un error en la logica: {e}")
 
                     case "2":
@@ -100,7 +104,8 @@ class CajeroUI:
                                 case "2":
                                     tipo_cuenta="Corriente"
                                 case _:
-                                    raise ValueError("Tipo de cuenta invalida")
+                                    print("Tipo de cuenta seleccionada invalida")
+                                    continue
 
                             cuenta_registrada = self.sistema_cajero.crear_y_vincular_cuenta(dni_usuario, tipo_cuenta)
 
@@ -109,8 +114,10 @@ class CajeroUI:
                         except ValidationError as e:
                             print("Ha ocurrido un error en los datos ingresados:")
                             for error in e.errors():
+                                Logger.add_to_log("error", str(error['msg']))
                                 print(f" - {error['msg']}")
                         except ValueError as e:
+                            Logger.add_to_log("warn", str(e))
                             print(f"Ha ocurrido un error en la logica: {e}")
 
                     case "3":
@@ -148,8 +155,10 @@ class CajeroUI:
                         except ValidationError as e:
                             print("Ha ocurrido un error en los datos ingresados:")
                             for error in e.errors():
+                                Logger.add_to_log("error", str(error['msg']))
                                 print(f" - {error['msg']}")
                         except ValueError as e:
+                            Logger.add_to_log("warn", str(e))
                             print(f"Ha ocurrido un error en la logica: {e}")
 
                     case "4":
@@ -183,8 +192,10 @@ class CajeroUI:
                         except ValidationError as e:
                             print("Ha ocurrido un error en los datos ingresados:")
                             for error in e.errors():
+                                Logger.add_to_log("error", str(error['msg']))
                                 print(f" - {error['msg']}")
                         except ValueError as e:
+                            Logger.add_to_log("warn", str(e))
                             print(f"Ha ocurrido un error en la logica: {e}")
 
                     case "5":
@@ -252,8 +263,10 @@ class CajeroUI:
                                 except ValidationError as e:
                                     print("Ha ocurrido un error en los datos ingresados:")
                                     for error in e.errors():
+                                        Logger.add_to_log("error", str(error['msg']))
                                         print(f" - {error['msg']}")
                                 except ValueError as e:
+                                    Logger.add_to_log("warn", str(e))
                                     print(f"Ha ocurrido un error en la logica: {e}")
 
                             case "3":
@@ -261,7 +274,13 @@ class CajeroUI:
                                     transacciones_cuenta = self.sistema_cajero.transaccion_por_cuenta(cuenta_activa)
                                     for transaccion in transacciones_cuenta:
                                         print(transaccion)
+                                except ValidationError as e:
+                                    print("Ha ocurrido un error en los datos ingresados:")
+                                    for error in e.errors():
+                                        Logger.add_to_log("error", str(error['msg']))
+                                        print(f" - {error['msg']}")
                                 except ValueError as e:
+                                    Logger.add_to_log("warn", str(e))
                                     print(f"Ha ocurrido un error en la logica: {e}")
 
                             case "4":
@@ -277,8 +296,8 @@ class CajeroUI:
                     except Exception as e:
                         print(f"Ha ocurrio un error inesperado {e}")
                     except ValueError as e:
-                        print(f"Acceso denegado: {e}")
-
+                        Logger.add_to_log("warn", str(e))
+                        print(f"Ha ocurrido un error en la logica: {e}")
 
             except Exception as e:
                 print(e)
