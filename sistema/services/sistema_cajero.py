@@ -1,7 +1,7 @@
 from typing import Dict, List
-from pydantic import ValidationError
-from models import Cuenta, CuentaSchema, Usuario, UsuarioSchema, Tarjeta, TarjetaSchema, Cajero, CajeroSchema, Transaccion, TransaccionSchema
-from random import random, choices, randint
+from random import choices, randint
+from utils.utils import validar_luhn
+from models import Cuenta, CuentaSchema, Usuario, UsuarioSchema, Tarjeta, TarjetaSchema, Cajero, Transaccion, TransaccionSchema
 
 class SistemaCajero:
     def __init__(self):
@@ -42,14 +42,18 @@ class SistemaCajero:
         return self.usuarios
 
     def _listar_cuentas_por_usuario(self, dni: str ) -> List["Cuenta"]:
+
         
         if len(self.cuentas) == 0:
-            raise ValueError("No existen cuentas bancarias registradas en el sistema")
+            raise ValueError(f"Persistencia de Datos: No existen cuentas de bancarias registradas en el sistema")
         
         usuario = self.usuarios.get(dni)
 
         if not usuario:
-            raise ValueError("El DNI ingresado no se encuentra registrado")
+            raise ValueError(f"Busqueda fallida: El DNI {dni} no se encuentra registrado en el sistema")
+        
+        if len(usuario.cuentas) == 0:
+            raise ValueError(f"Persistencia de Datos: El usuario {usuario.nombre} no cuenta con cuentas regitradas")
         
         return usuario.cuentas
 
@@ -209,28 +213,34 @@ class SistemaCajero:
 
         return usuario.saldo, cuenta.saldo
 
-    def _autenticar_usuario(self, numero_tarjeta: str,pin_ingresado: str) -> "Cuenta":
-
-        tarjeta = self.tarjetas.get(numero_tarjeta)
-
-        if not tarjeta:
-            raise ValueError(f"Busqueda fallida: {numero_tarjeta} no reconocida en el sistema")
-        
-        if not tarjeta.estado:
-            raise ValueError(f"Seguridad: {numero_tarjeta} se encuentra bloqueada por seguridad")
-        
-        if len(pin_ingresado) != 6 or not pin_ingresado.isdigit():
-            raise ValueError(f"Incoherencia de Datos: El PIN {pin_ingresado} debe estar formado exactamente por 6 dígitos numericos")
-
-        if not tarjeta.validar_pin(pin_ingresado):
-            restantes = 3 - tarjeta.intentos
-            raise ValueError(f"Intento de tarjeta {numero_tarjeta}: PIN incorrecto. Le quedan {restantes} intentos")
+    def verificar_tarjeta(self, numero_tarjeta: str) -> "Tarjeta":
             
-        cuenta = self.cuentas.get(tarjeta.numero_cuenta)
-        if not cuenta:
-            raise ValueError(f"Incoherencia de Datos: {numero_tarjeta} sin numero de cuenta vinculada")
-    
-        return cuenta 
+            if not validar_luhn(numero_tarjeta):
+                raise ValueError("Incoherencia de Datos: El numero de tarjeta es invalido o falso")
+            
+            tarjeta = self.tarjetas.get(numero_tarjeta)
+            if not tarjeta:
+                raise ValueError(f"Busqueda fallida: {numero_tarjeta} no reconocida en el sistema")
+            
+            if not tarjeta.estado:
+                raise ValueError(f"Seguridad: {numero_tarjeta} se encuentra bloqueada por seguridad")
+                
+            return tarjeta
+
+    def _autenticar_usuario(self, tarjeta, pin_ingresado: str) -> "Cuenta":
+            
+            if len(pin_ingresado) != 6 or not pin_ingresado.isdigit():
+                raise ValueError(f"Incoherencia de Datos: El PIN {pin_ingresado} debe estar formado exactamente por 6 dígitos numericos")
+
+            if not tarjeta.validar_pin(pin_ingresado):
+                restantes = 3 - tarjeta.intentos
+                raise ValueError(f"Intento de tarjeta {tarjeta.numero_tarjeta}: PIN incorrecto. Le quedan {restantes} intentos")
+                
+            cuenta = self.cuentas.get(tarjeta.numero_cuenta)
+            if not cuenta:
+                raise ValueError(f"Incoherencia de Datos: {tarjeta.numero_tarjeta} sin numero de cuenta vinculada")
+        
+            return cuenta
 
     def retirar_dinero_cajero(self, cuenta: "Cuenta", monto: float) -> tuple["Transaccion", "Usuario", "Cuenta"]:
 
