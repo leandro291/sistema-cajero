@@ -1,11 +1,12 @@
 from typing import Dict, List
 from pydantic import ValidationError
+from daos import UsuarioDao
 from models import Cuenta, CuentaSchema, Usuario, UsuarioSchema, Tarjeta, TarjetaSchema, Cajero, CajeroSchema, Transaccion, TransaccionSchema
 from random import random, choices, randint
 
 class SistemaCajero:
     def __init__(self):
-        self.usuarios: Dict[str, "Usuario"]  = {}
+        self.usuarios = UsuarioDao()
         self.cuentas: Dict[str, "Cuenta"] = {}
         self.transacciones: Dict[str, "Transaccion"] = {}
         self.tarjetas: Dict[str, "Tarjeta"] = {}
@@ -63,9 +64,6 @@ class SistemaCajero:
         return cuenta.tarjetas
 
     def crear_usuario(self, nombre: str, dni: str, saldo: float) -> str:
-
-        if dni in self.usuarios:
-            raise ValueError(f"Intento de duplicidad: El DNI {dni} registrado ya se encuentra en el sistema")
         
         validacion_usuario = UsuarioSchema(
             nombre=nombre,
@@ -79,8 +77,12 @@ class SistemaCajero:
             saldo=validacion_usuario.saldo
         )
 
-        self.usuarios[usuario.dni] = usuario
-        return dni
+        exito = self.usuarios.registrar_usuario(usuario)
+
+        if not exito:
+            raise Exception("Error interno: No se pudo guardar el cliente en la base de datos.")
+            
+        print(f"Cliente '{nombre}' registrado exitosamente en el sistema.")
 
     def crear_y_vincular_cuenta(self, dni_usuario: str, tipo_cuenta: str) -> str:
 
